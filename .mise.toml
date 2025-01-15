@@ -5,10 +5,15 @@ python = "3.12"
 _.python.venv = { path = ".venv", create = true }
 PROJECT_NAME = "{{ config_root | basename }}"
 
-[tasks.uv-install]
+[tasks."uv:install"]
 description = "Install dependencies"
-alias = "i"
+alias = "uvi"
 run = "uv pip install -r requirements.txt"
+
+[tasks."uv:freeze"]
+description = "Create requirements.txt from currently installed modules"
+alias = "uvf"
+run = "uv pip freeze > requirements.txt"
 
 [tasks.info]
 description = "Print project information"
