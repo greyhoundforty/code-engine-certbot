@@ -1,4 +1,5 @@
-###------------------###
+
+0;5u0;1:3u0;5u0;5:3un0;1:3u###------------------###
 ###  TopTal: python  ###
 ###------------------###
 
@@ -178,4 +179,3 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
-

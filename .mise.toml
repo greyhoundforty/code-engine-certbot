@@ -1,2 +1,20 @@
 [tools]
-python = "3.12"
+python = "3.12" 
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+PROJECT_NAME = "{{ config_root | basename }}"
+
+[tasks.uv-install]
+description = "Install dependencies"
+alias = "i"
+run = "uv pip install -r requirements.txt"
+
+[tasks.info]
+description = "Print project information"
+run = '''
+echo "Project: $PROJECT_NAME"
+echo "Virtual Environment: $VIRTUAL_ENV"
+'''
+
+
