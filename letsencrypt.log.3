@@ -1,0 +1,15 @@
+2025-01-15 05:18:43,175:DEBUG:certbot._internal.main:certbot version: 3.1.0
+2025-01-15 05:18:43,175:DEBUG:certbot._internal.main:Location of certbot entry point: .venv/bin/certbot
+2025-01-15 05:18:43,175:DEBUG:certbot._internal.main:Arguments: ['--dns-digitalocean', '--config-dir', './', '--logs-dir', './', '--work-dir', './']
+2025-01-15 05:18:43,175:DEBUG:certbot._internal.main:Discovered plugins: PluginsRegistry(PluginEntryPoint#dns-digitalocean,PluginEntryPoint#manual,PluginEntryPoint#null,PluginEntryPoint#standalone,PluginEntryPoint#webroot)
+2025-01-15 05:18:43,188:DEBUG:certbot._internal.log:Root logging level set at 30
+2025-01-15 05:18:43,189:DEBUG:certbot._internal.plugins.selection:Requested authenticator dns-digitalocean and installer None
+2025-01-15 05:18:43,189:DEBUG:certbot._internal.plugins.selection:Single candidate plugin: * dns-digitalocean
+Description: Obtain certificates using a DNS TXT record (if you are using DigitalOcean for DNS).
+Interfaces: Authenticator, Plugin
+Entry point: EntryPoint(name='dns-digitalocean', value='certbot_dns_digitalocean._internal.dns_digitalocean:Authenticator', group='certbot.plugins')
+Initialized: <certbot_dns_digitalocean._internal.dns_digitalocean.Authenticator object at 0x102cebbc0>
+Prep: True
+2025-01-15 05:18:43,189:DEBUG:certbot._internal.plugins.selection:Selected authenticator <certbot_dns_digitalocean._internal.dns_digitalocean.Authenticator object at 0x102cebbc0> and installer None
+2025-01-15 05:18:43,189:INFO:certbot._internal.plugins.selection:Plugins selected: Authenticator dns-digitalocean, Installer None
+2025-01-15 05:18:50,640:ERROR:certbot._internal.log:Exiting due to user request.

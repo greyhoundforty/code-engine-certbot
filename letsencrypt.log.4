@@ -1,0 +1,27 @@
+2025-01-15 05:15:05,086:DEBUG:certbot._internal.main:certbot version: 3.1.0
+2025-01-15 05:15:05,086:DEBUG:certbot._internal.main:Location of certbot entry point: /Users/ryan/.local/share/mise/installs/python/3.12/bin/certbot
+2025-01-15 05:15:05,086:DEBUG:certbot._internal.main:Arguments: ['--dns-digitalocean', '--config-dir', './', '--logs-dir', './', '--work-dir', './']
+2025-01-15 05:15:05,086:DEBUG:certbot._internal.main:Discovered plugins: PluginsRegistry(PluginEntryPoint#manual,PluginEntryPoint#null,PluginEntryPoint#standalone,PluginEntryPoint#webroot)
+2025-01-15 05:15:05,099:DEBUG:certbot._internal.log:Root logging level set at 30
+2025-01-15 05:15:05,100:DEBUG:certbot._internal.plugins.selection:Requested authenticator dns-digitalocean and installer None
+2025-01-15 05:15:05,100:DEBUG:certbot._internal.plugins.selection:No candidate plugin
+2025-01-15 05:15:05,100:DEBUG:certbot._internal.log:Exiting abnormally:
+Traceback (most recent call last):
+  File "/Users/ryan/.local/share/mise/installs/python/3.12/bin/certbot", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Users/ryan/.local/share/mise/installs/python/3.12.8/lib/python3.12/site-packages/certbot/main.py", line 19, in main
+    return internal_main.main(cli_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ryan/.local/share/mise/installs/python/3.12.8/lib/python3.12/site-packages/certbot/_internal/main.py", line 1873, in main
+    return config.func(config, plugins)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ryan/.local/share/mise/installs/python/3.12.8/lib/python3.12/site-packages/certbot/_internal/main.py", line 1560, in certonly
+    installer, auth = plug_sel.choose_configurator_plugins(config, plugins, "certonly")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ryan/.local/share/mise/installs/python/3.12.8/lib/python3.12/site-packages/certbot/_internal/plugins/selection.py", line 256, in choose_configurator_plugins
+    diagnose_configurator_problem("authenticator", req_auth, plugins)
+  File "/Users/ryan/.local/share/mise/installs/python/3.12.8/lib/python3.12/site-packages/certbot/_internal/plugins/selection.py", line 374, in diagnose_configurator_problem
+    raise errors.PluginSelectionError(msg)
+certbot.errors.PluginSelectionError: The requested dns-digitalocean plugin does not appear to be installed
+2025-01-15 05:15:05,101:ERROR:certbot._internal.log:The requested dns-digitalocean plugin does not appear to be installed
