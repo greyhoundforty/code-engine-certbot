@@ -1,5 +1,5 @@
 [tools]
-python = "3.12" 
+python = "3.12"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
@@ -21,5 +21,3 @@ run = '''
 echo "Project: $PROJECT_NAME"
 echo "Virtual Environment: $VIRTUAL_ENV"
 '''
-
-
