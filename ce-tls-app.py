@@ -7,7 +7,9 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_cloud_sdk_core import ApiException
 from ibm_code_engine_sdk.code_engine_v2 import CodeEngineV2, ProjectsPager
 from pydo import Client
+from tamga import Tamga
 
+logger = Tamga(logToFile=True, logToJSON=True, logToConsole=True)
 
 ibmcloud_api_key = os.environ.get("IBMCLOUD_API_KEY")
 if not ibmcloud_api_key:
@@ -25,8 +27,13 @@ def code_engine_client(region):
     return ce_client
 
 
+def digitalocean_client():
+    doclent = Client(token=dns_token)
+    return doclent
+
+
 def generate_tls_certificate(custom_domain, dns_token, certbot_email):
-    cert_dir = f"certbot-{custom_domain}"
+    cert_dir = f"certbot-output"
     os.makedirs(cert_dir, exist_ok=True)
     certbot_cmd = [
         "certbot",
@@ -108,12 +115,20 @@ def update_dns(custom_domain, code_engine_cname):
 
     extracted = tldextract.extract(custom_domain)
     canonical_domain = extracted.domain + "." + extracted.suffix
-    do_client = Client(token=dns_token)
+    client = digitalocean_client()
     if not code_engine_cname.endswith("."):
         code_engine_cname += "."
     body = {"type": "CNAME", "name": extracted.subdomain, "data": code_engine_cname}
-    do_client.domains.create_record(canonical_domain, body=body)
-    print(f"Updating DNS for {canonical_domain} to point to {code_engine_cname}")
+    try:
+        logger.info(
+            f"Starting DNS update for {custom_domain} to point to {code_engine_cname}"
+        )
+        client.domains.create_record(canonical_domain, body=body)
+    except ApiException as e:
+        logger.error(
+            f"Error updating DNS for {custom_domain} to point to {code_engine_cname}"
+        )
+        raise e
 
 
 def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_name):
@@ -121,7 +136,6 @@ def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_nam
         "name": app_name,
         "resource_type": "app_v2",
     }
-
     response = ce_client.create_domain_mapping(
         project_id=project_id,
         component=component_ref_model,
@@ -129,7 +143,6 @@ def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_nam
         tls_secret=secret_name,
     )
     domain_mapping = response.get_result()
-    print(f"Domain mapping {domain_mapping['name']} created successfully.")
     return domain_mapping
 
 
@@ -152,11 +165,16 @@ def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_nam
     help="Email address for certbot request",
 )
 def main(region, project_name, app_name, custom_domain, certbot_email):
+    """
+    This script automates the process of mapping a custom domain to an IBM Cloud Code Engine application.
+    """
+
     ## Flow should be:
     # 1. Pull code engine project id from name
     ce_client = code_engine_client(region)
     project_id = get_project_id(ce_client, project_name)
-    print(f"Working on Project ID: {project_id}")
+    logger.info(f"Working on Project ID: {project_id}")
+    # bar.update(1)
 
     # 2. Pull application id from project and app name
     response = ce_client.get_app(
@@ -164,26 +182,40 @@ def main(region, project_name, app_name, custom_domain, certbot_email):
         name=app_name,
     )
     app = response.get_result()
+    # bar.update(1)
 
     code_engine_app_endpoint = app.get("endpoint")
     code_engine_cname = code_engine_app_endpoint.replace("https://", "")
-    print(f"Code Engine App Endpoint: {code_engine_cname}")
+    logger.info(f"Current Code Engine App Endpoint: {code_engine_app_endpoint}")
 
     # 3. Update DO DNS to point custom_domain to code engine cname
     update_dns(custom_domain, code_engine_cname)
+    logger.success(f"DNS for {custom_domain} updated to point to {code_engine_cname}")
 
-    # # 4. Generate TLS certificate for custom_domain
+    # 4. Generate TLS certificate for custom_domain
+    logger.info("Generating TLS certificate for custom domain.")
     tls_cert, tls_key = generate_tls_certificate(
         custom_domain, dns_token, certbot_email
     )
+    logger.success("TLS certificate generated successfully.")
 
     # # 5. Create secret in code engine project
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     secret_name = f"tls-secret-{timestamp}-{app_name}"
+    logger.info("Creating Code Engine TLS secret named: " + secret_name)
     create_code_engine_secret(ce_client, project_id, secret_name, tls_cert, tls_key)
+    logger.success(f"Secret {secret_name} created successfully.")
+
+    # 5.5 remove custom domain mapping if it exists already for the app
+    # will need list and pull based on name
 
     # 6. Map custom domain to code engine project
+    logger.info(f"Mapping custom domain {custom_domain} to Code Engine app {app_name}.")
     map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_name)
+    logger.success(
+        f"Custom domain {custom_domain} mapped to Code Engine app {app_name} successfully."
+    )
+    logger.success("All steps completed successfully.")
 
 
 if __name__ == "__main__":

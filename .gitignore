@@ -1,6 +1,8 @@
 digitalocean.ini
-certbot-*\*
-
+certbot-output/*
+tests/.env
+tamga.json
+.env
 ###------------------###
 ###  TopTal: python  ###
 ###------------------###
