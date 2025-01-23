@@ -12,7 +12,7 @@ This script automates the process of mapping a custom domain to an IBM Cloud Cod
 ## Usage
 
 ```shell
-python ce-tls-app.py --region <ibmcloud-region> \
+python ce_tls_app.py --region <ibmcloud-region> \
     --project-name <code-engine-project-name> \
     --app-name <application-name> \
     --custom-domain <custom-domain> \
