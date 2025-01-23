@@ -1,103 +1,38 @@
-<a id="utils"></a>
+# Overview
 
-# utils
+This script automates the process of mapping a custom domain to an IBM Cloud Code Engine application using Certbot and Let's Encrypt DNS chaallenge.
 
-<a id="ce-tls-app"></a>
+## Prerequisites
 
-# ce-tls-app
+- Python 3.x
+- Required Python packages installed (see `requirements.txt`)
+- IBM Cloud API Key
+- DigitalOcean API Key
 
-<a id="ce-tls-app.code_engine_client"></a>
+## Usage
 
-#### code\_engine\_client
-
-```python
-def code_engine_client(region)
+```shell
+python ce-tls-app.py --region <ibmcloud-region> \
+    --project-name <code-engine-project-name> \
+    --app-name <application-name> \
+    --custom-domain <custom-domain> \
+    --certbot-email <certbot-email>
 ```
 
-Create a Code Engine client in the specified IBM Cloud region.
-See https://cloud.ibm.com/apidocs/codeengine/v2?code=python#endpointurls
+## Quick Start
 
-<a id="ce-tls-app.digitalocean_client"></a>
+If you use [mise](https://mise.jdx.dev/), you can run the following command to get started quickly:
 
-#### digitalocean\_client
-
-```python
-def digitalocean_client()
+```shell
+git clone https://github.com/greyhoundforty/code-engine-certbot.git
+cd code-engine-certbot
 ```
 
-Create a Digital Ocean client.
+From here `mise` will automatically install the required python version and create a venv for you. From there you can run:
 
-<a id="ce-tls-app.generate_tls_certificate"></a>
-
-#### generate\_tls\_certificate
-
-```python
-def generate_tls_certificate(custom_domain, dns_token, certbot_email)
+```shell
+source .venv/bin/activate
+uv pip install -r requirements.txt
 ```
 
-Generate a TLS certificate for the custom domain using certbot and DNS challenge.
-
-<a id="ce-tls-app.get_project_id"></a>
-
-#### get\_project\_id
-
-```python
-def get_project_id(ce_client, project_name)
-```
-
-Get the Code Engine project ID from the project name.
-Used by custom_domain mapping function
-
-<a id="ce-tls-app.create_code_engine_secret"></a>
-
-#### create\_code\_engine\_secret
-
-```python
-def create_code_engine_secret(ce_client, project_id, secret_name, tls_cert,
-                              tls_key)
-```
-
-Create a secret in the specified Code Engine project.
-
-<a id="ce-tls-app.update_dns"></a>
-
-#### update\_dns
-
-```python
-def update_dns(custom_domain, code_engine_cname)
-```
-
-We need to get the canonical domain name from the custom_domain.
-This is required to update the DNS records in Digital Ocean.
-
-<a id="ce-tls-app.main"></a>
-
-#### main
-
-```python
-@click.command()
-@click.option("--region",
-              prompt="Enter the IBM Cloud region",
-              help="IBM Cloud region")
-@click.option(
-    "--project-name",
-    prompt="Enter the IBM Cloud Code Engine project name",
-    help="IBM Cloud Code Engine project name",
-)
-@click.option(
-    "--app-name",
-    prompt="Enter the IBM Cloud Code Engine application name",
-    help="IBM Cloud Code Engine app name",
-)
-@click.option("--custom-domain",
-              prompt="Enter the custom domain",
-              help="Custom domain")
-@click.option(
-    "--certbot-email",
-    prompt="Enter your email address for certbot request",
-    help="Email address for certbot request",
-)
-def main(region, project_name, app_name, custom_domain, certbot_email)
-```
-
-This script automates the process of mapping a custom domain to an IBM Cloud Code Engine application.
+Then you can run the script as shown in the usage section.
