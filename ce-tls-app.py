@@ -21,6 +21,10 @@ if not dns_token:
 
 
 def code_engine_client(region):
+    """
+    Create a Code Engine client in the specified IBM Cloud region.
+    See https://cloud.ibm.com/apidocs/codeengine/v2?code=python#endpointurls
+    """
     authenticator = IAMAuthenticator(apikey=ibmcloud_api_key)
     ce_client = CodeEngineV2(authenticator=authenticator)
     ce_client.set_service_url("https://api." + region + ".codeengine.cloud.ibm.com/v2")
@@ -28,11 +32,17 @@ def code_engine_client(region):
 
 
 def digitalocean_client():
+    """
+    Create a Digital Ocean client.
+    """
     doclent = Client(token=dns_token)
     return doclent
 
 
 def generate_tls_certificate(custom_domain, dns_token, certbot_email):
+    """
+    Generate a TLS certificate for the custom domain using certbot and DNS challenge.
+    """
     cert_dir = f"certbot-output"
     os.makedirs(cert_dir, exist_ok=True)
     certbot_cmd = [
@@ -76,6 +86,10 @@ def generate_tls_certificate(custom_domain, dns_token, certbot_email):
 
 
 def get_project_id(ce_client, project_name):
+    """
+    Get the Code Engine project ID from the project name.
+    Used by custom_domain mapping function
+    """
     all_results = []
     pager = ProjectsPager(
         client=ce_client,
