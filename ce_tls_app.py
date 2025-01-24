@@ -9,7 +9,7 @@ from ibm_code_engine_sdk.code_engine_v2 import CodeEngineV2, ProjectsPager
 from pydo import Client
 from tamga import Tamga
 
-logger = Tamga(logToFile=True, logToJSON=True, logToConsole=True)
+logger = Tamga(logToJSON=True, logToConsole=True)
 
 ibmcloud_api_key = os.environ.get("IBMCLOUD_API_KEY")
 if not ibmcloud_api_key:
