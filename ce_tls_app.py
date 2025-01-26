@@ -145,6 +145,24 @@ def update_dns(custom_domain, code_engine_cname):
         raise e
 
 
+def list_domain_mappings(ce_client, app_name, project_id):
+    """
+    Remove the custom domain mapping from the Code Engine application
+    """
+    response = ce_client.list_domain_mappings(project_id=project_id)
+    domain_mappings = response.get_result()
+    # Filter domain mappings to only include those with visibility = 'custom' and matching app_name
+    custom_domain_mappings = [
+        mapping
+        for mapping in domain_mappings["domain_mappings"]
+        if mapping["visibility"] == "custom"
+        and mapping["component"]["name"] == app_name
+    ]
+
+    custom_domain_name = custom_domain_mappings[0]["name"]
+    return custom_domain_name
+
+
 def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_name):
     component_ref_model = {
         "name": app_name,
@@ -220,6 +238,8 @@ def main(region, project_name, app_name, custom_domain, certbot_email):
     create_code_engine_secret(ce_client, project_id, secret_name, tls_cert, tls_key)
     logger.success(f"Secret {secret_name} created successfully.")
 
+    logger.info(f"Listing any existing domain_mapping to Code Engine app: {app_name}.")
+    current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
     # 5.5 remove custom domain mapping if it exists already for the app
     # will need list and pull based on name
 
