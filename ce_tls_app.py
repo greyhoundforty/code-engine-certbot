@@ -241,7 +241,7 @@ def main(certbot_email, custom_domain, region, app_name, project_name, dns_provi
     logger.success(f"Secret {secret_name} created successfully.")
 
     logger.info(f"Listing any existing domain_mapping to Code Engine app: {app_name}.")
-    current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
+    # current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
     # 5.5 remove custom domain mapping if it exists already for the app
     # will need list and pull based on name
 
