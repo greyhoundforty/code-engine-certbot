@@ -72,7 +72,11 @@ def generate_tls_certificate(custom_domain, dns_token, certbot_email):
 
     os.chmod("digitalocean.ini", 0o600)
 
-    subprocess.run(certbot_cmd, check=True)
+    # subprocess.run(certbot_cmd, check=True)
+    subprocess.run(
+        certbot_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+
     cert_path = f"{cert_dir}/live/{custom_domain}/fullchain.pem"
     key_path = f"{cert_dir}/live/{custom_domain}/privkey.pem"
 
@@ -81,6 +85,8 @@ def generate_tls_certificate(custom_domain, dns_token, certbot_email):
 
     with open(key_path, "r") as key_file:
         tls_key = key_file.read()
+
+    logger.success("Certificate generation successful!")
 
     return tls_cert, tls_key
 
@@ -225,7 +231,9 @@ def main(region, project_name, app_name, custom_domain, certbot_email):
     logger.success(f"DNS for {custom_domain} updated to point to {code_engine_cname}")
 
     # 4. Generate TLS certificate for custom_domain
-    logger.info("Generating TLS certificate for custom domain.")
+    logger.info(
+        "Generating TLS certificate for custom domain. This may take a few minutes."
+    )
     tls_cert, tls_key = generate_tls_certificate(
         custom_domain, dns_token, certbot_email
     )
