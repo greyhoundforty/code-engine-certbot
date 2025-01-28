@@ -1,6 +1,6 @@
 # Overview
 
-This script automates the process of mapping a custom domain to an IBM Cloud Code Engine application using Certbot and Let's Encrypt DNS chaallenge.
+This script automates the process of mapping a custom domain to an IBM Cloud Code Engine [application](https://cloud.ibm.com/docs/codeengine?topic=codeengine-ceapplications) using Certbot and the [multi-dns](https://github.com/alexzorin/certbot-dns-multi) plugin to generate a TLS certificate and store it as a Code Engine [Secret](). 
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ With the environment variables set, we can now run the script. The script takes 
 - `--project-name`: The name of the Code Engine project.
 - `--app-name`: The name of the Code Engine application.
 - `--custom-domain`: The custom domain you want to map to the Code Engine application.
-- `--dns-provider`: The DNS provider you are using.
+- `--dns-provider`: The DNS provider you are using. [List of DNS providers](https://go-acme.github.io/lego/dns/)
 - `--certbot-email`: The email address to use for the Let's Encrypt certificate.
 
 ```shell
@@ -64,20 +64,6 @@ python ce_tls_app.py --region <ibmcloud-region> \
     --certbot-email <certbot-email>
 ```
 
-## Quick Start
+## Demo
 
-If you use [mise](https://mise.jdx.dev/), you can run the following command to get started quickly:
-
-```shell
-git clone https://github.com/greyhoundforty/code-engine-certbot.git
-cd code-engine-certbot
-```
-
-From here `mise` will automatically install the required python version and create a venv for you. From there you can run:
-
-```shell
-source .venv/bin/activate
-uv pip install -r requirements.txt
-```
-
-Then you can run the script as shown in the usage section.
+[![asciicast](https://asciinema.org/a/700172.svg)](https://asciinema.org/a/700172)
