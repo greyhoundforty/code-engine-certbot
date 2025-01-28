@@ -8,6 +8,7 @@ This script automates the process of mapping a custom domain to an IBM Cloud Cod
 - Required Python packages installed (see `requirements.txt`)
 - IBM Cloud API Key: [Instructions](https://cloud.ibm.com/docs/account?topic=account-userapikey)
 - API Key for your DNS Provider: See the list of providers and associated Environment variables [here](https://go-acme.github.io/lego/dns/)
+- CNAME record pointing your custom domain to your IBM Cloud Code Engine default hostname. Ex: `custom.gh40.xyz` points to my apps default URL at `rst-custom-test.17rgnniognng.us-south.codeengine.appdomain.cloud`
 
 ## Usage
 
