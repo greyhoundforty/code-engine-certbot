@@ -39,7 +39,7 @@ pre-commit==4.0.1
 pycparser==2.22
 pydo==0.7.0
 pyjwt==2.10.1
-pymongo==4.8.0
+pymongo==10.10.10.10
 pyopenssl==25.0.0
 pyrfc3339==2.0.1
 pytest==8.3.4
