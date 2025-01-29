@@ -9,40 +9,37 @@ from ibm_code_engine_sdk.code_engine_v2 import CodeEngineV2, ProjectsPager
 from pydo import Client
 from tamga import Tamga
 
-logger = Tamga(logToFile=True, logToJSON=True, logToConsole=True)
+logger = Tamga(logToJSON=True, logToConsole=True)
 
 ibmcloud_api_key = os.environ.get("IBMCLOUD_API_KEY")
 if not ibmcloud_api_key:
     raise ValueError("IBMCLOUD_API_KEY environment variable not found")
 
-dns_token = os.environ.get("DO_TOKEN")
-if not dns_token:
-    raise ValueError("DO_TOKEN environment variable not found")
-
 
 def code_engine_client(region):
+    """
+    Create a Code Engine client in the specified IBM Cloud region.
+    See https://cloud.ibm.com/apidocs/codeengine/v2?code=python#endpointurls
+    """
     authenticator = IAMAuthenticator(apikey=ibmcloud_api_key)
     ce_client = CodeEngineV2(authenticator=authenticator)
     ce_client.set_service_url("https://api." + region + ".codeengine.cloud.ibm.com/v2")
     return ce_client
 
 
-def digitalocean_client():
-    doclent = Client(token=dns_token)
-    return doclent
-
-
-def generate_tls_certificate(custom_domain, dns_token, certbot_email):
+def generate_tls_certificate(custom_domain, dns_provider, certbot_email):
+    """
+    Generate a TLS certificate for the custom domain using certbot and DNS challenge.
+    """
     cert_dir = f"certbot-output"
     os.makedirs(cert_dir, exist_ok=True)
     certbot_cmd = [
         "certbot",
         "certonly",
-        "--dns-digitalocean",
-        "--dns-digitalocean-credentials",
-        "./digitalocean.ini",
-        "--dns-digitalocean-propagation-seconds",
-        "120",
+        "-a",
+        "dns-multi",
+        "--dns-multi-credentials",
+        "./dns-multi.ini",
         "-d",
         custom_domain,
         "--non-interactive",
@@ -57,12 +54,16 @@ def generate_tls_certificate(custom_domain, dns_token, certbot_email):
         cert_dir,
     ]
 
-    with open("digitalocean.ini", "w") as f:
-        f.write(f"dns_digitalocean_token = {dns_token}\n")
+    with open("dns-multi.ini", "w") as f:
+        f.write(f"dns_multi_provider = {dns_provider}\n")
 
-    os.chmod("digitalocean.ini", 0o600)
+    os.chmod("dns-multi.ini", 0o600)
 
-    subprocess.run(certbot_cmd, check=True)
+    # subprocess.run(certbot_cmd, check=True)
+    subprocess.run(
+        certbot_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+
     cert_path = f"{cert_dir}/live/{custom_domain}/fullchain.pem"
     key_path = f"{cert_dir}/live/{custom_domain}/privkey.pem"
 
@@ -72,10 +73,16 @@ def generate_tls_certificate(custom_domain, dns_token, certbot_email):
     with open(key_path, "r") as key_file:
         tls_key = key_file.read()
 
+    logger.success("Certificate generation successful!")
+
     return tls_cert, tls_key
 
 
 def get_project_id(ce_client, project_name):
+    """
+    Get the Code Engine project ID from the project name.
+    Used by custom_domain mapping function
+    """
     all_results = []
     pager = ProjectsPager(
         client=ce_client,
@@ -131,6 +138,24 @@ def update_dns(custom_domain, code_engine_cname):
         raise e
 
 
+def list_domain_mappings(ce_client, app_name, project_id):
+    """
+    Remove the custom domain mapping from the Code Engine application
+    """
+    response = ce_client.list_domain_mappings(project_id=project_id)
+    domain_mappings = response.get_result()
+    # Filter domain mappings to only include those with visibility = 'custom' and matching app_name
+    custom_domain_mappings = [
+        mapping
+        for mapping in domain_mappings["domain_mappings"]
+        if mapping["visibility"] == "custom"
+        and mapping["component"]["name"] == app_name
+    ]
+
+    custom_domain_name = custom_domain_mappings[0]["name"]
+    return custom_domain_name
+
+
 def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_name):
     component_ref_model = {
         "name": app_name,
@@ -160,11 +185,18 @@ def map_custom_domain(ce_client, app_name, project_id, custom_domain, secret_nam
 )
 @click.option("--custom-domain", prompt="Enter the custom domain", help="Custom domain")
 @click.option(
+    "--dns-provider",
+    prompt="Enter your DNS provider plugin name",
+    help="DNS provider plugin name",
+)
+# @click.option("--dns-token", prompt="Enter your DNS provider token", help="DNS provider token")
+@click.option(
     "--certbot-email",
     prompt="Enter your email address for certbot request",
     help="Email address for certbot request",
 )
-def main(region, project_name, app_name, custom_domain, certbot_email):
+# def main(region, project_name, app_name, custom_domain, certbot_email):
+def main(certbot_email, custom_domain, region, app_name, project_name, dns_provider):
     """
     This script automates the process of mapping a custom domain to an IBM Cloud Code Engine application.
     """
@@ -188,24 +220,28 @@ def main(region, project_name, app_name, custom_domain, certbot_email):
     code_engine_cname = code_engine_app_endpoint.replace("https://", "")
     logger.info(f"Current Code Engine App Endpoint: {code_engine_app_endpoint}")
 
-    # 3. Update DO DNS to point custom_domain to code engine cname
-    update_dns(custom_domain, code_engine_cname)
-    logger.success(f"DNS for {custom_domain} updated to point to {code_engine_cname}")
+    # # 3. Update DO DNS to point custom_domain to code engine cname
+    # update_dns(custom_domain, code_engine_cname)
+    # logger.success(f"DNS for {custom_domain} updated to point to {code_engine_cname}")
 
     # 4. Generate TLS certificate for custom_domain
-    logger.info("Generating TLS certificate for custom domain.")
+    logger.info(
+        "Generating TLS certificate for custom domain. This may take a few minutes."
+    )
     tls_cert, tls_key = generate_tls_certificate(
-        custom_domain, dns_token, certbot_email
+        custom_domain, dns_provider, certbot_email
     )
     logger.success("TLS certificate generated successfully.")
 
-    # # 5. Create secret in code engine project
+    # 5. Create secret in code engine project
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     secret_name = f"tls-secret-{timestamp}-{app_name}"
     logger.info("Creating Code Engine TLS secret named: " + secret_name)
     create_code_engine_secret(ce_client, project_id, secret_name, tls_cert, tls_key)
     logger.success(f"Secret {secret_name} created successfully.")
 
+    logger.info(f"Listing any existing domain_mapping to Code Engine app: {app_name}.")
+    # current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
     # 5.5 remove custom domain mapping if it exists already for the app
     # will need list and pull based on name
 

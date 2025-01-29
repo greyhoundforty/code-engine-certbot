@@ -2,6 +2,7 @@ digitalocean.ini
 certbot-output/*
 tests/.env
 tamga.json
+dns-multi.ini
 .env
 ###------------------###
 ###  TopTal: python  ###
