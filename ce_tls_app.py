@@ -33,6 +33,33 @@ def generate_tls_certificate(custom_domain, dns_provider, certbot_email):
     """
     cert_dir = f"certbot-output"
     os.makedirs(cert_dir, exist_ok=True)
+
+    # Generate private key
+    private_key_path = os.path.join(cert_dir, "private-key.pem")
+    subprocess.run(
+        ["openssl", "genpkey", "-algorithm", "RSA", "-out", private_key_path],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    # Generate CSR
+    csr_path = os.path.join(cert_dir, "csr.pem")
+    subprocess.run(
+        [
+            "openssl",
+            "req",
+            "-new",
+            "-key",
+            private_key_path,
+            "-out",
+            csr_path,
+            "-subj",
+            f"/CN={custom_domain}",
+        ],
+        check=True,
+    )
+
     certbot_cmd = [
         "certbot",
         "certonly",
@@ -40,6 +67,12 @@ def generate_tls_certificate(custom_domain, dns_provider, certbot_email):
         "dns-multi",
         "--dns-multi-credentials",
         "./dns-multi.ini",
+        "--csr",
+        csr_path,
+        "--cert-path",
+        os.path.join(cert_dir, "cert.pem"),
+        "--fullchain-path",
+        os.path.join(cert_dir, "fullchain.pem"),
         "-d",
         custom_domain,
         "--non-interactive",
@@ -64,8 +97,8 @@ def generate_tls_certificate(custom_domain, dns_provider, certbot_email):
         certbot_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
 
-    cert_path = f"{cert_dir}/live/{custom_domain}/fullchain.pem"
-    key_path = f"{cert_dir}/live/{custom_domain}/privkey.pem"
+    cert_path = f"{cert_dir}/fullchain.pem"
+    key_path = f"{cert_dir}/private-key.pem"
 
     with open(cert_path, "r") as cert_file:
         tls_cert = cert_file.read()
@@ -140,7 +173,7 @@ def update_dns(custom_domain, code_engine_cname):
 
 def list_domain_mappings(ce_client, app_name, project_id):
     """
-    Remove the custom domain mapping from the Code Engine application
+    List the custom domain mappings for the Code Engine application.
     """
     response = ce_client.list_domain_mappings(project_id=project_id)
     domain_mappings = response.get_result()
@@ -151,7 +184,9 @@ def list_domain_mappings(ce_client, app_name, project_id):
         if mapping["visibility"] == "custom"
         and mapping["component"]["name"] == app_name
     ]
-
+    if not custom_domain_mappings:
+        logger.info(f"No custom domain mappings found for app: {app_name}")
+        return None
     custom_domain_name = custom_domain_mappings[0]["name"]
     return custom_domain_name
 
@@ -231,6 +266,7 @@ def main(certbot_email, custom_domain, region, app_name, project_name, dns_provi
     tls_cert, tls_key = generate_tls_certificate(
         custom_domain, dns_provider, certbot_email
     )
+    # generate_tls_certificate(custom_domain, dns_provider, certbot_email)
     logger.success("TLS certificate generated successfully.")
 
     # 5. Create secret in code engine project
@@ -241,7 +277,15 @@ def main(certbot_email, custom_domain, region, app_name, project_name, dns_provi
     logger.success(f"Secret {secret_name} created successfully.")
 
     logger.info(f"Listing any existing domain_mapping to Code Engine app: {app_name}.")
-    # current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
+    current_domain_mapping = list_domain_mappings(ce_client, app_name, project_id)
+
+    if current_domain_mapping:
+        logger.info(f"Removing existing domain mapping: {current_domain_mapping}")
+        ce_client.delete_domain_mapping(
+            project_id=project_id, name=current_domain_mapping
+        )
+        logger.success(f"Removed existing domain mapping: {current_domain_mapping}")
+
     # 5.5 remove custom domain mapping if it exists already for the app
     # will need list and pull based on name
 

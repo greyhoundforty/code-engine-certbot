@@ -1,9 +1,14 @@
-digitalocean.ini
 certbot-output/*
+renewal-hooks/*
 tests/.env
 tamga.json
 dns-multi.ini
 .env
+*cert.pem
+*chain.pem
+letsencrypt.*
+accounts/**
+
 ###------------------###
 ###  TopTal: python  ###
 ###------------------###
