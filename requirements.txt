@@ -22,7 +22,7 @@ identify==2.6.6
 idna==3.10
 iniconfig==2.0.0
 isodate==0.7.2
-josepy==1.14.0
+josepy==1.15.0
 jsonpickle==4.0.1
 motor==3.5.3
 msal==1.31.1
