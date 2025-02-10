@@ -16,7 +16,7 @@ filelock==3.17.0
 ibm-cloud-sdk-core==3.22.1
 ibm-code-engine-sdk==4.9.0
 ibm-platform-services==0.59.1
-identify==2.6.6
+identify==2.6.7
 idna==3.10
 josepy==1.15.0
 motor==3.5.3
