@@ -6,7 +6,6 @@ from datetime import datetime
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_cloud_sdk_core import ApiException
 from ibm_code_engine_sdk.code_engine_v2 import CodeEngineV2, ProjectsPager
-from pydo import Client
 from tamga import Tamga
 
 logger = Tamga(logToJSON=True, logToConsole=True)

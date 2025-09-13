@@ -1,6 +1,6 @@
 # Overview
 
-This script automates the process of mapping a custom domain to an IBM Cloud Code Engine [application](https://cloud.ibm.com/docs/codeengine?topic=codeengine-ceapplications) using Certbot and the [multi-dns](https://github.com/alexzorin/certbot-dns-multi) plugin to generate a TLS certificate and store it as a Code Engine [Secret](). 
+This script automates the process of mapping a custom domain to an IBM Cloud Code Engine [application](https://cloud.ibm.com/docs/codeengine?topic=codeengine-ceapplications) using Certbot and the [multi-dns](https://github.com/alexzorin/certbot-dns-multi) plugin to generate a TLS certificate and store it as a Code Engine [Secret](https://cloud.ibm.com/docs/codeengine?topic=codeengine-secret). 
 
 ## Prerequisites
 
