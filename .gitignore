@@ -8,7 +8,7 @@ dns-multi.ini
 *chain.pem
 letsencrypt.*
 accounts/**
-
+*-output/*
 ###------------------###
 ###  TopTal: python  ###
 ###------------------###

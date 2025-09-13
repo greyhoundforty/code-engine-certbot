@@ -31,7 +31,7 @@ def generate_tls_certificate(custom_domain, dns_provider, certbot_email):
     """
     Generate a TLS certificate for the custom domain using certbot and DNS challenge.
     """
-    cert_dir = f"certbot-output"
+    cert_dir = f"{custom_domain}-output"
     os.makedirs(cert_dir, exist_ok=True)
 
     # Generate private key
